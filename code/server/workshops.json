@@ -1,0 +1,102 @@
+[
+  {
+    "id": "1",
+    "name": "studio.1",
+    "classes": [
+      {
+        "studio": "1",
+        "name": "Gentle",
+        "start": "9:30",
+        "end": "10:20",
+        "teacher": "Ari K.",
+        "attendees": 15,
+        "capacity": 15,
+        "profilePhoto": "ari",
+        "amount": 35
+      },
+      {
+        "studio": "1",
+        "name": "Yoga Intermediate",
+        "start": "10:30",
+        "end": "11:20",
+        "teacher": "Erica L.",
+        "attendees": 12,
+        "capacity": 15,
+        "profilePhoto": "erica",
+        "amount": 55
+      },
+      {
+        "studio": "1",
+        "name": "Mindful",
+        "start": "12:30",
+        "end": "13:20",
+        "teacher": "Lee Y.",
+        "attendees": 9,
+        "capacity": 15,
+        "profilePhoto": "lee",
+        "amount": 25
+      },
+      {
+        "studio": "1",
+        "name": "Stretch",
+        "start": "14:00",
+        "end": "14:50",
+        "teacher": "Lee Y.",
+        "attendees": 9,
+        "capacity": 15,
+        "profilePhoto": "lee",
+        "amount": 15
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "name": "studio.2",
+    "classes": [
+      {
+        "studio": "2",
+        "name": "Stretch",
+        "start": "10:00",
+        "end": "10:45",
+        "teacher": "Jenny P.",
+        "attendees": 17,
+        "capacity": 18,
+        "profilePhoto": "jenny",
+        "amount": 15
+      },
+      {
+        "studio": "2",
+        "name": "Yoga Core",
+        "start": "11:00",
+        "end": "11:50",
+        "teacher": "Kenny F.",
+        "attendees": 12,
+        "capacity": 18,
+        "profilePhoto": "kenny",
+        "amount": 45
+      },
+      {
+        "studio": "2",
+        "name": "Yoga Intermediate",
+        "start": "12:00",
+        "end": "12:50",
+        "teacher": "Rachel G.",
+        "attendees": 10,
+        "capacity": 18,
+        "profilePhoto": "rachel",
+        "amount": 55
+      },
+      {
+        "studio": "2",
+        "name": "Yoga Intermediate",
+        "start": "14:00",
+        "end": "14:50",
+        "teacher": "Ethan B.",
+        "attendees": 15,
+        "capacity": 18,
+        "profilePhoto": "ethan",
+        "amount": 55
+      }
+    ]
+  }
+]
