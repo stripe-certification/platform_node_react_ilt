@@ -9,52 +9,6 @@ import { dbService } from './db';
 
 async function createWorkshop(data: WorkshopParams, userId: string) {
   const { stripeAccount } = await loadUserOrThrow(userId);
-  const price = await stripe.getSdk().prices.create(
-    {
-      product_data: {
-        name: `${data.instructorName} - ${data.name}`,
-      },
-      nickname: data.name,
-      unit_amount: data.amount * 100,
-      currency: 'usd',
-    },
-    {
-      stripeAccount,
-    }
-  );
-  if (!price) throw new Error('Failed to create price');
-
-  const paymentLink = await stripe.getSdk().paymentLinks.create(
-    {
-      line_items: [
-        {
-          price: price.id,
-          quantity: 1,
-        },
-      ],
-      application_fee_amount: Math.floor(data.amount * 0.1 * 100),
-    },
-    {
-      stripeAccount,
-    }
-  );
-
-  if (!paymentLink) throw new Error('Failed to create payment link');
-
-  const id = `wkshp_${crypto.randomUUID()}`;
-
-  const workshop: Workshop = {
-    ...data,
-    userId,
-    id,
-    attendees: 0,
-    paymentLinkId: paymentLink.id,
-    paymentLinkUrl: paymentLink.url,
-  };
-
-  await dbService.saveData('workshops', id, workshop);
-
-  return workshop;
 }
 
 /**
