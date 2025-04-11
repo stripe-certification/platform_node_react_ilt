@@ -4,9 +4,11 @@
   "description": "Stripe Platform Ilt",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "npx tsx src/server.ts",
+    "startServerDev": "tsx watch src/server.ts",
+    "startListener": "stripe listen --forward-to http://localhost:4242/webhook",
+    "dev": "concurrently -i --kill-others \"npm run startServerDev\" \"npm run startListener\"",
     "lint": "npx eslint",
     "prettier": "prettier './**/*.{js,ts,md}' --write",
     "prettier-check": "prettier './**/*.{js,ts,md}' --check"
@@ -37,6 +39,7 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^22.13.0",
+    "concurrently": "^9.1.2",
     "eslint": "^9.24.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-recommended": "^4.1.0",
