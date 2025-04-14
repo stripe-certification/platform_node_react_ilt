@@ -72,9 +72,8 @@ export function sampleWorkshopName() {
 
 export const WorkshopParamsSchema = z.object({
   name: z.string().min(1),
-  instructorName: z.string().min(1),
-  resourceName: z.string().min(1),
-  resourceId: z.string(),
+  instructorId: z.string().min(1),
+  studioId: z.string().min(1),
   capacity: z.coerce.number().min(1),
   amount: z.coerce.number().min(0),
   start: z.string(),
@@ -128,5 +127,23 @@ export const StudioSchema = StudioParamsSchema.extend({
 });
 export const isStudio = createTypeGuard(StudioSchema);
 export type Studio = z.infer<typeof StudioSchema>;
+
+// #endregion
+
+// #region checkout session types
+
+export const CheckoutSessionSchema = z.object({
+  id: z.string(),
+  object: z.literal('checkout.session'),
+  metadata: z.object({
+    instructorId: z.string(),
+    studioId: z.string(),
+    instructorName: z.string(),
+    studioName: z.string(),
+    workshopId: z.string(),
+  }),
+});
+export const isCheckoutSession = createTypeGuard(CheckoutSessionSchema);
+export type CheckoutSession = z.infer<typeof CheckoutSessionSchema>;
 
 // #endregion

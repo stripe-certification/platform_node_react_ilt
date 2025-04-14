@@ -2,9 +2,12 @@ import { Workshop } from '@/sharedTypes';
 import { Popover, Typography } from '@mui/material';
 import { useState } from 'react';
 import { formatCurrency } from '@/helpers';
+import { useTeamData } from '@/contexts/TeamData';
 
 const WorkshopDayEvent = ({ event }: { event: Workshop }) => {
+  const { capacity, attendees, amount, name, instructorId } = event;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const { instructorById } = useTeamData();
   const handleClick = (e: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(e.currentTarget);
   };
@@ -20,7 +23,9 @@ const WorkshopDayEvent = ({ event }: { event: Workshop }) => {
       <div
         onClick={handleClick}
         className="h-full w-full cursor-pointer truncate px-1 py-0.5 text-xs"
-      ></div>
+      >
+        {name}
+      </div>
       <Popover
         open={open}
         anchorEl={anchorEl}
@@ -39,16 +44,16 @@ const WorkshopDayEvent = ({ event }: { event: Workshop }) => {
             variant="subtitle2"
             className="text-xl font-semibold text-[#f26552]"
           >
-            {event.name}
+            {name}
           </Typography>
           <Typography variant="body2" className="text-lg text-gray-700">
-            Instructor: {event.instructorName}
+            Instructor: {instructorById(instructorId).name}
           </Typography>
           <Typography variant="body2" className="text-lg text-gray-700">
-            Attendees: {event.attendees}/{event.capacity}
+            Attendees: {attendees}/{capacity}
           </Typography>
           <Typography variant="body2" className="text-lg text-gray-700">
-            {formatCurrency(event.amount)}
+            {formatCurrency(amount)}
           </Typography>
         </div>
       </Popover>

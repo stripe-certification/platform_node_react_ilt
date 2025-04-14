@@ -11,7 +11,7 @@ interface StudioFormProps {
 }
 
 export function StudioForm({ setOpen }: StudioFormProps) {
-  const { createStudio } = useTeamData();
+  const { createStudio, refreshData } = useTeamData();
   const { control, handleSubmit, formState } = useForm<StudioParams>({
     resolver: zodResolver(StudioParamsSchema),
     defaultValues: {
@@ -23,6 +23,7 @@ export function StudioForm({ setOpen }: StudioFormProps) {
   const onSubmit = async (data: StudioParams) => {
     try {
       await createStudio(data);
+      refreshData();
       setOpen(false);
     } catch (error) {
       console.error('Error creating studio:', error);

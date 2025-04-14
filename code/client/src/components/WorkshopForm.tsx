@@ -3,7 +3,6 @@
 import React, { Dispatch, SetStateAction, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { Button, LoaderPage } from '@/components/ui';
 import { Field } from './ui/Field';
 import fetchClient from '../utils/fetchClient';
@@ -14,47 +13,39 @@ import {
   getDurationOptions,
   timeOptions,
 } from '@/helpers';
-import {
-  WorkshopParams,
-  WorkshopParamsSchema,
-  Instructor,
-  Studio,
-  Workshop,
-} from '@/sharedTypes';
+import { WorkshopParams, WorkshopParamsSchema, Workshop } from '@/sharedTypes';
+import { useTeamData } from '@/contexts/TeamData';
 
 export default function WorkshopForm({
   setFormOpen,
   fetchWorkshops,
   workshops,
-  instructors,
-  studios,
 }: {
   setFormOpen: Dispatch<SetStateAction<boolean>>;
   fetchWorkshops: () => void;
   workshops: Workshop[];
-  instructors: Instructor[];
-  studios: Studio[];
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { control, handleSubmit, formState, setValue, watch } =
-    useForm<WorkshopParams>({
-      resolver: zodResolver(WorkshopParamsSchema),
-      defaultValues: {
-        name: '',
-        instructorName: '',
-        resourceName: '',
-        resourceId: '',
-        capacity: 0,
-        date: new Date().toISOString().split('T')[0],
-        startTime: '9:00',
-        duration: 15,
-      },
-    });
+  const { instructors, studios, studioById } = useTeamData();
+  const { control, handleSubmit, formState, watch } = useForm<WorkshopParams>({
+    resolver: zodResolver(WorkshopParamsSchema),
+    defaultValues: {
+      name: '',
+      instructorId: '',
+      studioId: '',
+      capacity: 10,
+      date: new Date().toISOString().split('T')[0],
+      startTime: '9:00',
+      duration: 15,
+      amount: 0,
+    },
+  });
   const startTime = watch('startTime');
+  const studioId = watch('studioId');
   const durationOptions = getDurationOptions(startTime);
 
-  const onSubmit = async (values: z.infer<typeof WorkshopParamsSchema>) => {
+  const onSubmit = async (values: WorkshopParams) => {
     const conflictError = checkForConflicts(workshops, values);
 
     if (conflictError) {
@@ -67,6 +58,7 @@ export default function WorkshopForm({
     const { date, startTime, duration, ...rest } = values;
     const transformedValues = {
       ...rest,
+      capacity: studioById(studioId).maxCapacity,
       start,
       end,
     };
@@ -101,40 +93,25 @@ export default function WorkshopForm({
           label="Name"
           placeholder="Yoga Workshop"
         />
-
         <Field
           control={control}
-          name="instructorName"
+          name="instructorId"
           label="Instructor"
           as="select"
           options={instructors.map((instructor) => ({
-            value: instructor.name,
+            value: instructor.id,
             label: instructor.name,
           }))}
         />
         <Field
           control={control}
-          name="resourceName"
+          name="studioId"
           label="Studio"
           as="select"
           options={studios.map((studio) => ({
-            value: studio.name,
+            value: studio.id,
             label: studio.name,
           }))}
-          setValues={(studioName, field) => {
-            const studio = studios.find((s) => s.name === studioName);
-            if (studio) {
-              setValue('resourceId', studio.id);
-              field.onChange(studio.name);
-            }
-          }}
-        />
-        <Field
-          type="number"
-          control={control}
-          name="capacity"
-          label="Capacity"
-          placeholder="10"
         />
         <Field
           type="number"

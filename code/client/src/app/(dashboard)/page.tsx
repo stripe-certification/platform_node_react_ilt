@@ -10,7 +10,8 @@ import CustomersWidget from '@/components/CustomersWidget';
 import { useUserContext } from '@/contexts/UserData';
 
 export default function Dashboard() {
-  const { user, detailsSubmitted, isDisabled } = useUserContext();
+  const { user, detailsSubmitted, isDisabled, isChargesEnabled } =
+    useUserContext();
   const router = useRouter();
   if (!user) throw new Error('User not found');
 
@@ -23,7 +24,7 @@ export default function Dashboard() {
             <Banner
               message={
                 !detailsSubmitted
-                  ? 'Please go to the Account page to submit your details.'
+                  ? 'Please go to the Account page and complete onboarding to begin creating workshops.'
                   : 'We need additional information before you can start processing payments.'
               }
               actionLabel="Go to account page"
@@ -31,7 +32,7 @@ export default function Dashboard() {
               variant="warning"
             />
           )}
-          <Schedule />
+          {isChargesEnabled && <Schedule />}
         </div>
         <div className="w-[30%] min-w-[300px] space-y-4">
           <BalanceWidget />

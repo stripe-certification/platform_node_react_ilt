@@ -3,7 +3,14 @@ import Stripe from 'stripe';
 import { Request } from 'express';
 import { dbService } from './db';
 import stripe from '../clients/stripe';
-import { User, PoseAccount, UserParams } from '../sharedTypes';
+import {
+  User,
+  PoseAccount,
+  UserParams,
+  isWorkshop,
+  CheckoutSession,
+} from '../sharedTypes';
+import { WorkshopService } from './workshops';
 
 export interface RequestWithUserId extends Request {
   userId?: string;
@@ -112,6 +119,18 @@ export async function handleAccountUpdate(obj: PoseAccount) {
   });
 }
 
+export async function incrementEventAttendees(obj: CheckoutSession) {
+  const workshop = await WorkshopService.getWorkshop(obj.metadata.workshopId);
+  if (!isWorkshop(workshop)) return console.error('Workshop not found');
+
+  if (workshop.attendees < workshop.capacity) {
+    await WorkshopService.updateWorkshop(workshop.id, {
+      ...workshop,
+      attendees: workshop.attendees + 1,
+    });
+  }
+}
+
 export default {
   handleAccountUpdate,
   loadUserOrThrow,
@@ -119,4 +138,5 @@ export default {
   updateUser,
   findUserByEmail,
   userExists,
+  incrementEventAttendees,
 };

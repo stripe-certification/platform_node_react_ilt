@@ -5,7 +5,6 @@ import {
   Control,
   FieldValues,
   FieldPath,
-  UseControllerReturn,
 } from 'react-hook-form';
 import { Input } from './Input';
 import { cn } from '@/lib/utils';
@@ -23,10 +22,6 @@ interface FieldProps<
   as?: 'input' | 'select'; // Determines whether to render an input or select
   className?: string;
   description?: string; // Optional description for the field
-  setValues?: (
-    value: string,
-    field: UseControllerReturn<TFieldValues, TName>['field'] // for setting multiple fields using a select input
-  ) => void;
 }
 
 export const Field = <
@@ -42,7 +37,6 @@ export const Field = <
   as = 'input',
   className,
   description,
-  setValues,
 }: FieldProps<TFieldValues, TName>) => {
   const {
     field,
@@ -88,11 +82,6 @@ export const Field = <
           aria-describedby={cn(descriptionId, errorId)}
           aria-invalid={!!error}
           {...field}
-          onChange={(e: any) => {
-            const value = e.target.value;
-            setValues?.(value, field);
-            field.onChange(value);
-          }}
         >
           <option value="" disabled>
             {placeholder || 'Select an option'}

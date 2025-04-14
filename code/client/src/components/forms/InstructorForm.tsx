@@ -5,24 +5,27 @@ import { Field } from '../ui/Field';
 import { Button } from '../ui/Button';
 import { useTeamData } from '@/contexts/TeamData';
 import { InstructorParams, InstructorParamsSchema } from '@/sharedTypes';
+import { PROFILE_PHOTO_PLACEHOLDER } from '@/constants';
 
 interface InstructorFormProps {
   setOpen: (open: boolean) => void;
 }
 
 export function InstructorForm({ setOpen }: InstructorFormProps) {
-  const { createInstructor } = useTeamData();
+  const { createInstructor, refreshData } = useTeamData();
   const { control, handleSubmit, formState } = useForm<InstructorParams>({
     resolver: zodResolver(InstructorParamsSchema),
     defaultValues: {
       name: '',
-      profilePhoto: 'placeholder',
+      profilePhoto: PROFILE_PHOTO_PLACEHOLDER,
     },
   });
 
   const onSubmit = async (data: InstructorParams) => {
     try {
       await createInstructor(data);
+
+      refreshData();
       setOpen(false);
     } catch (error) {
       console.error('Error creating instructor:', error);
@@ -42,6 +45,7 @@ export function InstructorForm({ setOpen }: InstructorFormProps) {
           control={control}
           name="profilePhoto"
           label="Profile Photo URL"
+          placeholder={PROFILE_PHOTO_PLACEHOLDER}
           type="url"
           description="Optional: A URL to the instructor's profile photo."
         />

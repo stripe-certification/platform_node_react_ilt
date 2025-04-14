@@ -2,13 +2,75 @@ import crypto from 'crypto';
 import { faker } from '@faker-js/faker';
 import stripe from '../clients/stripe';
 import { Workshop, WorkshopParams, sampleWorkshopName } from '../sharedTypes';
-import { listInstructors } from './instructors';
-import { listStudios } from './studios';
+import { getInstructor, listInstructors } from './instructors';
+import { getStudio, listStudios } from './studios';
 import { loadUserOrThrow } from './users';
 import { dbService } from './db';
 
 async function createWorkshop(data: WorkshopParams, userId: string) {
   const { stripeAccount } = await loadUserOrThrow(userId);
+  const instructor = await getInstructor(data.instructorId);
+  const studio = await getStudio(data.studioId);
+
+  const price = await stripe.getSdk().prices.create(
+    {
+      product_data: {
+        name: `${instructor.name} - ${data.name}`,
+      },
+      nickname: data.name,
+      unit_amount: data.amount * 100,
+      currency: 'usd',
+    },
+    {
+      stripeAccount,
+    }
+  );
+
+  if (!price) throw new Error('Failed to create price');
+  const id = `wkshp_${crypto.randomUUID()}`;
+
+  const paymentLink = await stripe.getSdk().paymentLinks.create(
+    {
+      line_items: [
+        {
+          price: price.id,
+          quantity: 1,
+        },
+      ],
+      application_fee_amount: Math.floor(data.amount * 0.1 * 100),
+      metadata: {
+        instructorId: data.instructorId,
+        studioId: data.studioId,
+        instructorName: instructor.name,
+        studioName: studio.name,
+        workshopId: id,
+      },
+      restrictions: {
+        completed_sessions: {
+          limit: data.capacity,
+        },
+      },
+    },
+    {
+      stripeAccount,
+    }
+  );
+
+  if (!paymentLink) throw new Error('Failed to create payment link');
+
+  const workshop: Workshop = {
+    ...data,
+    userId,
+    id,
+    attendees: 0,
+    paymentLinkId: paymentLink.id,
+    paymentLinkUrl: paymentLink.url,
+  };
+
+  await dbService.saveData('workshops', id, workshop);
+
+  return workshop;
+  // #endregion End Stripe Implementation
 }
 
 /**
@@ -48,9 +110,8 @@ export async function createSampleWorkshops(
         end: new Date(
           currentStartTime.getTime() + 60 * 60 * 1000
         ).toISOString(), // 1 hour later
-        instructorName: instructor.name,
-        resourceName: studio.name,
-        resourceId: studio.id,
+        instructorId: instructor.id,
+        studioId: studio.id,
         capacity: studio.maxCapacity,
         amount: sampleAmount(),
       };

@@ -58,11 +58,6 @@ export type User = z.infer<typeof UserSchema>;
 
 // #region WORKSHOP TYPES
 
-export interface Resource {
-  resourceId: string;
-  resourceTitle: string;
-}
-
 export const YOGA_TYPES = [
   'Hatha',
   'Vinyasa',
@@ -82,9 +77,8 @@ export function sampleWorkshopName() {
 
 export const WorkshopParamsSchema = z.object({
   name: z.string().min(1),
-  instructorName: z.string().min(1),
-  resourceName: z.string().min(1),
-  resourceId: z.string(),
+  instructorId: z.string().min(1),
+  studioId: z.string(),
   capacity: z.coerce.number().min(1),
   amount: z.coerce.number().min(0),
   date: z.string(),

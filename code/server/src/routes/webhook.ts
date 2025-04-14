@@ -1,7 +1,7 @@
 import { Router, raw, Request, Response } from 'express';
 import stripe from '../clients/stripe';
 import UserService from '../services/users';
-import { isPoseAccount } from '../sharedTypes';
+import { isCheckoutSession, isPoseAccount } from '../sharedTypes';
 
 const router = Router();
 
@@ -35,6 +35,11 @@ router.post(
         case 'account.updated':
           if (isPoseAccount(obj)) {
             await UserService.handleAccountUpdate(obj);
+          }
+          break;
+        case 'checkout.session.completed':
+          if (isCheckoutSession(obj)) {
+            await UserService.incrementEventAttendees(obj);
           }
           break;
         default:

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import fetchClient from '../utils/fetchClient';
-import { Workshop, Resource } from '@/sharedTypes';
+import { Studio, Workshop } from '@/sharedTypes';
 import { calendarCss } from '@/constants';
 import {
   Calendar,
@@ -30,7 +30,7 @@ const Schedule = () => {
   const [workshopsLoading, setWorkshopsLoading] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const { isChargesEnabled } = useUserContext();
-  const { instructors, studios, isLoading: isTeamLoading } = useTeamData();
+  const { studios, isLoading: isTeamLoading } = useTeamData();
   const [error, setError] = useState<any>(null);
 
   const fetchWorkshops = async () => {
@@ -51,7 +51,7 @@ const Schedule = () => {
     fetchWorkshops();
   }, []);
 
-  const components: Components<Workshop, Resource> = {
+  const components: Components<Workshop, Studio> = {
     event: ({ event }: { event: Workshop }) => {
       return <WorkshopDayEvent event={event} />;
     },
@@ -117,15 +117,13 @@ const Schedule = () => {
         events={workshops}
         defaultView={'agenda'}
         views={['day', 'agenda']}
-        resources={studios.map((studio) => ({
-          resourceId: studio.id,
-          resourceTitle: studio.name,
-        }))}
+        resources={studios}
         titleAccessor={(event) => event.name}
         startAccessor={(event) => new Date(event.start)}
         endAccessor={(event) => new Date(event.end)}
-        resourceTitleAccessor={(resource) => resource.resourceTitle}
-        resourceIdAccessor={(resource) => resource.resourceId}
+        resourceAccessor={(event) => event.studioId}
+        resourceTitleAccessor={(resource) => resource.name}
+        resourceIdAccessor={(resource) => resource.id}
         defaultDate={new Date()}
         max={moment().hours(18).minutes(0).seconds(0).toDate()}
         min={moment().hours(9).minutes(0).seconds(0).toDate()}
@@ -147,8 +145,6 @@ const Schedule = () => {
           setFormOpen={setFormOpen}
           fetchWorkshops={fetchWorkshops}
           workshops={workshops}
-          instructors={instructors}
-          studios={studios}
         />
       </Modal>
     </>

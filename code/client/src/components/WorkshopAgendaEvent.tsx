@@ -2,6 +2,7 @@ import { Workshop } from '@/sharedTypes';
 import { CopyButton } from './CopyButton';
 import { useUserContext } from '@/contexts/UserData';
 import { formatCurrency } from '@/helpers';
+import { useTeamData } from '@/contexts/TeamData';
 
 const WorkshopAgendaEvent = (event: Workshop) => {
   const {
@@ -10,12 +11,14 @@ const WorkshopAgendaEvent = (event: Workshop) => {
     capacity,
     id,
     paymentLinkUrl,
-    instructorName,
-    resourceName,
+    instructorId,
+    studioId,
     amount,
   } = event;
-
+  const { studioById, instructorById } = useTeamData();
   const { isChargesEnabled } = useUserContext();
+  const instructorName = instructorById(instructorId).name;
+  const resourceName = studioById(studioId).name;
   return (
     <div className="flex h-auto flex-col justify-between gap-2" key={id}>
       <div className="flex justify-center bg-[#fffaf6] text-lg font-bold text-[#f26552]">
@@ -46,6 +49,7 @@ const WorkshopAgendaEvent = (event: Workshop) => {
           <CopyButton
             paymentLinkUrl={paymentLinkUrl}
             isChargesEnabled={isChargesEnabled}
+            event={event}
           />
         </div>
       </div>

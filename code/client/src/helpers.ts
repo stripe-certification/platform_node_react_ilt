@@ -69,7 +69,7 @@ export function checkForConflicts(
     const existingStart = new Date(workshop.start);
     const existingEnd = new Date(workshop.end);
 
-    const sameStudio = workshop.resourceId === newEvent.resourceId;
+    const sameStudio = workshop.studioId === newEvent.studioId;
     const overlaps = start < existingEnd && end > existingStart;
 
     return sameStudio && overlaps;

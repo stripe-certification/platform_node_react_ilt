@@ -25,6 +25,8 @@ interface TeamDataContextValue {
   createStudio: (params: StudioParams) => Promise<void>;
   createSampleStudios: () => Promise<void>;
   refreshData: () => Promise<void>;
+  studioById: (id: Studio['id']) => Studio;
+  instructorById: (id: Instructor['id']) => Instructor;
 }
 
 const TeamDataContext = createContext<TeamDataContextValue | null>(null);
@@ -133,6 +135,24 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
     }
   };
 
+  const studioById = (id: Studio['id']): Studio => {
+    const studio = studios.find((studio: Studio) => studio.id === id);
+    if (!studio) {
+      throw new Error(`Studio with id ${id} not found`);
+    }
+    return studio;
+  };
+
+  const instructorById = (id: Instructor['id']): Instructor => {
+    const instructor = instructors.find(
+      (instructor: Instructor) => instructor.id === id
+    );
+    if (!instructor) {
+      throw new Error(`Instructor with id ${id} not found`);
+    }
+    return instructor;
+  };
+
   const refreshData = async () => {
     await fetchData();
   };
@@ -152,6 +172,8 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
     createSampleStudios,
     createSampleInstructors,
     refreshData,
+    studioById,
+    instructorById,
   };
 
   return (

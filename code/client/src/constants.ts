@@ -6,6 +6,8 @@ export const PUBLIC_ROUTES = ['/signup', '/login'];
 
 // #workshop
 
+export const TOOLTIP_TIMEOUT = 2000;
+
 export const TIME_OPTIONS = Array.from({ length: 36 }, (_, i) => {
   const hours = 9 + Math.floor(i / 4);
   const minutes = (i % 4) * 15;
@@ -38,6 +40,12 @@ export const DURATION_OPTIONS = Array.from({ length: 13 }, (_, i) => {
 
   return { value: minutes, label };
 });
+
+// #endregion
+
+// #profilePhoto
+
+export const PROFILE_PHOTO_PLACEHOLDER = 'https://picsum.photos/id/103/200/300';
 
 // #endregion
 
