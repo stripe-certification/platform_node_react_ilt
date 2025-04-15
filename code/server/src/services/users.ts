@@ -38,36 +38,11 @@ export async function createUser(userData: UserParams): Promise<User> {
 
   const now = new Date();
 
-  const payload: Stripe.AccountCreateParams = {
-    email: email,
-    country: 'US',
-    capabilities: {
-      transfers: {
-        requested: true,
-      },
-      card_payments: {
-        requested: true,
-      },
-    },
-    controller: {
-      fees: {
-        payer: 'application',
-      },
-      requirement_collection: 'application',
-      stripe_dashboard: {
-        type: 'none',
-      },
-      losses: {
-        payments: 'application',
-      },
-    },
-    metadata: {
-      userId: id,
-    },
-  };
+  let payload: Stripe.AccountCreateParams;
+  let stripeAccount: Stripe.Account;
 
-  const stripeAccount = await stripe.getSdk().accounts.create(payload);
-  if (!stripeAccount.id) throw new Error('Error creating stripe account');
+  // Training TODO: When a user signup for the Pose app, create a new Stripe account
+  // for them. Populate the payload to pass to the account create method.
   const newUser: User = {
     name: name,
     email: email,

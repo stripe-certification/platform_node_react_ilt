@@ -6,7 +6,7 @@ import { isCheckoutSession, isPoseAccount } from '../sharedTypes';
 const router = Router();
 
 /**
- * Eventually handles Stripe webhook events.
+ * Handles Stripe webhook events.
  *
  * @param {request} request
  * @param {response} 200 JSON response including {received: true}
@@ -16,26 +16,13 @@ router.post(
   raw({ type: 'application/json' }),
   async (request: Request, response: Response) => {
     try {
-      const signature = request.headers['stripe-signature'];
-      if (!signature) {
-        throw new Error('Stripe signature missing');
-      }
-
-      const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-      if (!endpointSecret) {
-        throw new Error('Stripe webhook secret missing');
-      }
-      const event = await stripe
-        .getSdk()
-        .webhooks.constructEvent(request.body, signature, endpointSecret);
-      const obj = event.data.object;
+      let event = null;
+      // Training TODO: Handle a webhook event
+      // Start by constructing the event from the payload
 
       switch (event.type) {
         case 'account.updated':
-          if (isPoseAccount(obj)) {
-            await UserService.handleAccountUpdate(obj);
-          }
+          // Training TODO: Handle an `account.updated` event
           break;
         case 'checkout.session.completed':
           if (isCheckoutSession(obj)) {

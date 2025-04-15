@@ -20,46 +20,8 @@ export const EmbeddedComponentContext = ({
     throw new Error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set');
 
   useEffect(() => {
-    const fetchClientSecret = async () => {
-      const { data } = await fetchClient.post('/account-sessions');
-      if (!data.client_secret) {
-        return;
-      }
-
-      return data.client_secret;
-    };
-
-    if (!isLoggedIn) return;
-    if (stripeConnectInstance !== null) return;
-    setStripeConnectInstance(
-      loadConnectAndInitialize({
-        publishableKey,
-        fetchClientSecret,
-        appearance: {
-          overlays: 'dialog',
-          variables: {
-            fontFamily: 'Sohne, inherit',
-
-            colorPrimary: '#312356',
-
-            buttonPrimaryColorBackground: '#312356',
-            buttonPrimaryColorText: '#f4f4f5',
-
-            badgeSuccessColorBackground: '#D7F4CC',
-            badgeSuccessColorText: '#264F47',
-            badgeSuccessColorBorder: '#BDDAB3',
-
-            badgeWarningColorBackground: '#FFEACC',
-            badgeWarningColorText: '#C95B4D',
-            badgeWarningColorBorder: '#FFD28C',
-
-            badgeDangerColorBackground: '#FFEACC',
-            badgeDangerColorText: '#C95B4D',
-            badgeDangerColorBorder: '#FFD28C',
-          },
-        },
-      })
-    );
+    // Training TODO: Configure a StripeConectInstance that can be used with the
+    // ConnectComponentsProvider.
   }, [stripeConnectInstance, isLoggedIn, publishableKey]);
 
   if (!isLoggedIn) return children;

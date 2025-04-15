@@ -9,53 +9,9 @@ import { dbService } from './db';
 
 async function createWorkshop(data: WorkshopParams, userId: string) {
   const { stripeAccount } = await loadUserOrThrow(userId);
-  const instructor = await getInstructor(data.instructorId);
-  const studio = await getStudio(data.studioId);
 
-  const price = await stripe.getSdk().prices.create(
-    {
-      product_data: {
-        name: `${instructor.name} - ${data.name}`,
-      },
-      nickname: data.name,
-      unit_amount: data.amount * 100,
-      currency: 'usd',
-    },
-    {
-      stripeAccount,
-    }
-  );
-
-  if (!price) throw new Error('Failed to create price');
-  const id = `wkshp_${crypto.randomUUID()}`;
-
-  const paymentLink = await stripe.getSdk().paymentLinks.create(
-    {
-      line_items: [
-        {
-          price: price.id,
-          quantity: 1,
-        },
-      ],
-      application_fee_amount: Math.floor(data.amount * 0.1 * 100),
-      metadata: {
-        instructorId: data.instructorId,
-        studioId: data.studioId,
-        instructorName: instructor.name,
-        studioName: studio.name,
-        workshopId: id,
-      },
-      restrictions: {
-        completed_sessions: {
-          limit: data.capacity,
-        },
-      },
-    },
-    {
-      stripeAccount,
-    }
-  );
-
+  let paymentLink;
+  // Training TODO: Create a payment link that will be used in the workshop object.
   if (!paymentLink) throw new Error('Failed to create payment link');
 
   const workshop: Workshop = {
@@ -70,7 +26,6 @@ async function createWorkshop(data: WorkshopParams, userId: string) {
   await dbService.saveData('workshops', id, workshop);
 
   return workshop;
-  // #endregion End Stripe Implementation
 }
 
 /**
