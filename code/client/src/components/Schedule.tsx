@@ -51,6 +51,10 @@ const Schedule = () => {
     fetchWorkshops();
   }, []);
 
+  if (workshopsLoading || isTeamLoading) {
+    return <LoaderPage />;
+  }
+
   const components: Components<Workshop, Studio> = {
     event: ({ event }: { event: Workshop }) => {
       return <WorkshopDayEvent event={event} />;
@@ -61,10 +65,6 @@ const Schedule = () => {
       },
     },
   };
-
-  if (workshopsLoading || isTeamLoading) {
-    return <LoaderPage />;
-  }
 
   return (
     <>

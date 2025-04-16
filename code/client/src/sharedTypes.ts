@@ -124,7 +124,7 @@ export type Instructor = z.infer<typeof InstructorSchema>;
 
 export const StudioParamsSchema = z.object({
   name: z.string(),
-  maxCapacity: z.number(),
+  maxCapacity: z.coerce.number().min(1),
 });
 export const isStudioParams = createTypeGuard(StudioParamsSchema);
 export type StudioParams = z.infer<typeof StudioParamsSchema>;

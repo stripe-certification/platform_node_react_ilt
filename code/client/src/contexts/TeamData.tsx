@@ -33,10 +33,23 @@ const TeamDataContext = createContext<TeamDataContextValue | null>(null);
 
 export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const { user } = useUserContext(); // Get the logged-in user from UserContext
+  //These two collections are private state to facilitate finding by id and are not
+  //exposed to the context
+  const [instructorsById, setInstructorsById] = useState<
+    Map<string, Instructor>
+  >(new Map());
+  const [studiosById, setStudiosById] = useState<Map<string, Studio>>(
+    new Map()
+  );
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [studios, setStudios] = useState<Studio[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (studiosById) setStudios(Array.from(studiosById.values()));
+    if (instructorsById) setInstructors(Array.from(instructorsById.values()));
+  }, [studiosById, instructorsById]);
 
   const fetchData = async () => {
     if (!user) return;
@@ -49,10 +62,18 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
         fetchClient.get<{ studios: Studio[] }>('/studios'),
         fetchClient.get<{ instructors: Instructor[] }>('/instructors'),
       ]);
+      const newStudiosById = new Map<string, Studio>();
+      studiosResponse.data.studios.forEach((studio) => {
+        newStudiosById.set(studio.id, studio);
+      });
 
-      setStudios(studiosResponse.data.studios);
+      const newInstructorsById = new Map<string, Instructor>();
+      instructorsResponse.data.instructors.forEach((instructor) => {
+        newInstructorsById.set(instructor.id, instructor);
+      });
 
-      setInstructors(instructorsResponse.data.instructors);
+      setStudiosById(newStudiosById);
+      setInstructorsById(newInstructorsById);
     } catch (err: any) {
       console.error('Error fetching team data:', err);
       setError(err.message || 'Failed to fetch team data');
@@ -67,7 +88,7 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
     try {
       const response = await fetchClient.post<Studio>('/studios', params);
-      setStudios((prev) => [...prev, response.data]);
+      setStudiosById(new Map(studiosById).set(response.data.id, response.data));
     } catch (err: any) {
       console.error('Error creating studio:', err);
       setError(err.message || 'Failed to create studio');
@@ -84,10 +105,12 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
       const response = await fetchClient.post<{ studios: Studio[] }>(
         '/studios/quickstart'
       );
-      const { studios } = response.data;
-      setStudios((prev) =>
-        uniqBy([...prev, ...studios], (studio) => studio.id)
-      );
+      const newStudiosById = new Map<string, Studio>();
+      response.data.studios.forEach((studio) => {
+        newStudiosById.set(studio.id, studio);
+      });
+
+      setStudiosById(newStudiosById);
     } catch (err: any) {
       console.error('Error creating sample studios:', err);
       setError(err.message || 'Failed to create sample studios');
@@ -106,7 +129,9 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
         '/instructors',
         params
       );
-      setInstructors((prev) => [...prev, response.data]);
+      setInstructorsById(
+        new Map(instructorsById).set(response.data.id, response.data)
+      );
     } catch (err: any) {
       console.error('Error creating instructor:', err);
       setError(err.message || 'Failed to create instructor');
@@ -124,9 +149,12 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
         '/instructors/quickstart'
       );
       const { instructors } = response.data;
-      setInstructors((prev) =>
-        uniqBy([...prev, ...instructors], (instructor) => instructor.id)
-      );
+      const newInstructorsById = new Map<string, Instructor>();
+      instructors.forEach((instructor) => {
+        newInstructorsById.set(instructor.id, instructor);
+      });
+
+      setInstructorsById(newInstructorsById);
     } catch (err: any) {
       console.error('Error creating instructor:', err);
       setError(err.message || 'Failed to create instructor');
@@ -136,7 +164,10 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
   };
 
   const studioById = (id: Studio['id']): Studio => {
-    const studio = studios.find((studio: Studio) => studio.id === id);
+    if (!studiosById || !studiosById.size) {
+      throw new Error('Studios are not available');
+    }
+    const studio = studiosById.get(id);
     if (!studio) {
       throw new Error(`Studio with id ${id} not found`);
     }
@@ -144,9 +175,11 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
   };
 
   const instructorById = (id: Instructor['id']): Instructor => {
-    const instructor = instructors.find(
-      (instructor: Instructor) => instructor.id === id
-    );
+    if (!instructorsById || !instructorsById.size) {
+      throw new Error('Instructors are not available');
+    }
+    const instructor = instructorsById.get(id);
+
     if (!instructor) {
       throw new Error(`Instructor with id ${id} not found`);
     }
