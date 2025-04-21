@@ -95,8 +95,13 @@ export async function handleAccountUpdate(obj: PoseAccount) {
 }
 
 export async function incrementEventAttendees(obj: CheckoutSession) {
+  console.log(
+    'Incrementing event attendees for workshop',
+    obj.metadata.workshopId
+  );
   const workshop = await WorkshopService.getWorkshop(obj.metadata.workshopId);
-  if (!isWorkshop(workshop)) return console.error('Workshop not found');
+  if (!isWorkshop(workshop))
+    return console.error('Workshop not found', obj.metadata.workshopId);
 
   if (workshop.attendees < workshop.capacity) {
     await WorkshopService.updateWorkshop(workshop.id, {

@@ -1,7 +1,14 @@
 import { Router, Response } from 'express';
 import { WorkshopService } from '../services/workshops';
 import SessionsService, { SessionRequest } from '../services/sessions';
-import { WorkshopParamsSchema } from '../sharedTypes';
+import {
+  WorkshopFormSchema,
+  WorkshopForm,
+  WorkshopCreateParams,
+} from '../sharedTypes';
+import { getStudio } from '../services/studios';
+import { checkForConflicts, computeStartEnd } from '../helpers';
+
 const router = Router();
 
 router.post(
@@ -9,15 +16,36 @@ router.post(
   SessionsService.isAuthenticated,
   async (request: SessionRequest, response: Response) => {
     const userId = SessionsService.getUserId(request) as string;
-    const workshopParams = WorkshopParamsSchema.safeParse(request.body);
-    if (!workshopParams.success) {
+    const parsedResult = WorkshopFormSchema.safeParse(request.body);
+    if (!parsedResult.success) {
       return response.status(400).json({
-        error: { message: workshopParams.error.format() },
+        error: { message: parsedResult.error.format() },
       });
     }
+    const workshopFormParams: WorkshopForm = parsedResult.data;
+    const existingWorkshops = await WorkshopService.listWorkshops(userId);
+    const conflict = checkForConflicts(existingWorkshops, workshopFormParams);
+    if (conflict) {
+      return response.status(400).json({
+        error: { message: conflict },
+      });
+    }
+    //Build a WorkshopParams object from the WorkshopFormParms
+    const { date, startTime, duration, studioId, ...rest } = workshopFormParams;
+    const { start, end } = computeStartEnd({ date, startTime, duration });
+    const studio = await getStudio(studioId);
+    const capacity = studio.maxCapacity;
+    const transformedValues: WorkshopCreateParams = {
+      ...rest,
+      start,
+      end,
+      studioId,
+      capacity,
+    };
+
     try {
       const workshop = await WorkshopService.createWorkshop(
-        request.body,
+        transformedValues,
         userId
       );
       return response.status(200).json({ workshop });

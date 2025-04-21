@@ -16,7 +16,8 @@ interface InstructorsTableProps {
 
 export function InstructorsTable({ instructors }: InstructorsTableProps) {
   const [formOpen, setFormOpen] = useState(false);
-  const { createSampleInstructors, isLoading } = useTeamData();
+  const { createSampleInstructors, isLoading, workshopCountByInstructor } =
+    useTeamData();
 
   let instructorList = <EmptyResult resourceName="instructors" />;
   if (instructors.length > 0) {
@@ -28,6 +29,9 @@ export function InstructorsTable({ instructors }: InstructorsTableProps) {
         >
           <div className="flex flex-col items-center gap-4">
             <h3 className="text-lg font-medium">{instructor.name}</h3>
+            <h3 className="text-lg font-medium">
+              Upcoming Workshops: {workshopCountByInstructor.get(instructor.id)}
+            </h3>
             {instructor.profilePhoto && (
               <img
                 src={instructor.profilePhoto}

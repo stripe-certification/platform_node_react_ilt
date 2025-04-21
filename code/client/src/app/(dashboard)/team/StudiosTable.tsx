@@ -16,7 +16,8 @@ interface StudiosTableProps {
 
 export function StudiosTable({ studios }: StudiosTableProps) {
   const [formOpen, setFormOpen] = useState(false);
-  const { createSampleStudios, isLoading } = useTeamData();
+  const { createSampleStudios, isLoading, workshopCountByStudio } =
+    useTeamData();
   let studioList = <EmptyResult resourceName="studios" />;
   if (studios.length > 0) {
     const studioElts = studios.map((studio) => {
@@ -27,6 +28,9 @@ export function StudiosTable({ studios }: StudiosTableProps) {
         >
           <div className="flex flex-col items-center">
             <h3 className="text-lg font-medium">{studio.name}</h3>
+            <h3 className="text-lg font-medium">
+              Upcoming Workshops: {workshopCountByStudio.get(studio.id)}
+            </h3>
             <p className="text-sm text-subdued">
               Max Capacity: {studio.maxCapacity}
             </p>

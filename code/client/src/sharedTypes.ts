@@ -75,7 +75,7 @@ export function sampleWorkshopName() {
   return `${faker.helpers.arrayElement(YOGA_TYPES)} Yoga`;
 }
 
-export const WorkshopParamsSchema = z.object({
+export const WorkshopFormSchema = z.object({
   name: z.string().min(1),
   instructorId: z.string().min(1),
   studioId: z.string(),
@@ -85,17 +85,28 @@ export const WorkshopParamsSchema = z.object({
   startTime: z.string(),
   duration: z.coerce.number().min(1),
 });
-export const isWorkshopParams = createTypeGuard(WorkshopParamsSchema);
-export type WorkshopParams = z.infer<typeof WorkshopParamsSchema>;
+export const isWorkshopForm = createTypeGuard(WorkshopFormSchema);
+export type WorkshopForm = z.infer<typeof WorkshopFormSchema>;
 
-export const WorkshopSchema = WorkshopParamsSchema.extend({
+export const WorkshopCreateSchema = WorkshopFormSchema.omit({
+  duration: true,
+  date: true,
+  startTime: true,
+}).extend({
+  start: z.date(),
+  end: z.date(),
+});
+export const isWorkshopCreateParams = createTypeGuard(WorkshopCreateSchema);
+export type WorkshopCreateParams = z.infer<typeof WorkshopCreateSchema>;
+
+export const WorkshopSchema = WorkshopCreateSchema.extend({
+  start: z.date(),
+  end: z.date(),
+  attendees: z.number().min(0),
   id: z.string(),
   userId: z.string(),
   paymentLinkId: z.string(),
   paymentLinkUrl: z.string(),
-  start: z.date(),
-  end: z.date(),
-  attendees: z.number().min(0),
 });
 export const isWorkshop = createTypeGuard(WorkshopSchema);
 export type Workshop = z.infer<typeof WorkshopSchema>;

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import fetchClient from '../utils/fetchClient';
 import { Studio, Workshop } from '@/sharedTypes';
 import { calendarCss } from '@/constants';
 import {
@@ -22,34 +21,20 @@ import { LoaderPage, Modal } from './ui';
 import WorkshopForm from './WorkshopForm';
 import { useUserContext } from '@/contexts/UserData';
 import { useTeamData } from '@/contexts/TeamData';
+import { useWorkshopData } from '@/contexts/WorkshopData';
 
 moment.locale('en-GB');
 
 const Schedule = () => {
-  const [workshops, setWorkshops] = useState<Workshop[]>([]);
-  const [workshopsLoading, setWorkshopsLoading] = useState(false);
+  const {
+    workshops,
+    isLoading: workshopsLoading,
+    createSampleWorkshops,
+  } = useWorkshopData();
   const [formOpen, setFormOpen] = useState(false);
   const { isChargesEnabled } = useUserContext();
   const { studios, isLoading: isTeamLoading } = useTeamData();
   const [error, setError] = useState<any>(null);
-
-  const fetchWorkshops = async () => {
-    setError(null);
-    setWorkshopsLoading(true);
-    try {
-      const workshops = await fetchClient.get('/workshops');
-
-      setWorkshops(workshops.data.workshops);
-    } catch (error) {
-      console.error('Error fetching workshops:', error);
-      setError('Failed to fetch workshops. Please try again.');
-    } finally {
-      setWorkshopsLoading(false);
-    }
-  };
-  useEffect(() => {
-    fetchWorkshops();
-  }, []);
 
   if (workshopsLoading || isTeamLoading) {
     return <LoaderPage />;
@@ -82,21 +67,15 @@ const Schedule = () => {
         <h1 className="flex-1 text-3xl font-bold">Workshops</h1>
         <Button
           onClick={async () => {
-            setWorkshopsLoading(true);
             try {
-              await fetchClient.post('/workshops/quickstart');
-              fetchWorkshops();
+              createSampleWorkshops();
             } catch (err) {
               setError('Failed to seed workshops. Please try again.');
               console.error(err);
-            } finally {
-              setWorkshopsLoading(false);
             }
           }}
           className="gap-2 bg-white text-base font-medium text-primary shadow transition hover:shadow-md"
-          disabled={
-            workshopsLoading || !isChargesEnabled || workshops.length > 0
-          }
+          disabled={workshopsLoading || !isChargesEnabled}
         >
           <QuickSetupIcon className="h-5 w-5"></QuickSetupIcon>
           Quick Setup
@@ -141,11 +120,7 @@ const Schedule = () => {
         isOpen={formOpen}
         onClose={() => setFormOpen(false)}
       >
-        <WorkshopForm
-          setFormOpen={setFormOpen}
-          fetchWorkshops={fetchWorkshops}
-          workshops={workshops}
-        />
+        <WorkshopForm setFormOpen={setFormOpen} />
       </Modal>
     </>
   );

@@ -11,15 +11,19 @@ import {
   Studio,
   StudioParams,
   InstructorParams,
+  Workshop,
 } from '../sharedTypes';
 import { useUserContext } from './UserData';
-import { uniqBy } from '../helpers';
+import { useWorkshopData } from './WorkshopData';
+import { countBy } from '../helpers';
 
 interface TeamDataContextValue {
   instructors: Instructor[];
   studios: Studio[];
   isLoading: boolean;
   error: string | null;
+  workshopCountByInstructor: Map<string, number>;
+  workshopCountByStudio: Map<string, number>;
   createInstructor: (params: InstructorParams) => Promise<void>;
   createSampleInstructors: () => Promise<void>;
   createStudio: (params: StudioParams) => Promise<void>;
@@ -33,6 +37,8 @@ const TeamDataContext = createContext<TeamDataContextValue | null>(null);
 
 export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const { user } = useUserContext(); // Get the logged-in user from UserContext
+  const { workshops, isLoading: isWorkshopsLoading } = useWorkshopData();
+
   //These two collections are private state to facilitate finding by id and are not
   //exposed to the context
   const [instructorsById, setInstructorsById] = useState<
@@ -43,13 +49,23 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
   );
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [studios, setStudios] = useState<Studio[]>([]);
+  const [workshopCountByInstructor, setWorkshopCountByInstructor] = useState<
+    Map<string, number>
+  >(new Map());
+  const [workshopCountByStudio, setWorkshopCountByStudio] = useState<
+    Map<string, number>
+  >(new Map());
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (studiosById) setStudios(Array.from(studiosById.values()));
     if (instructorsById) setInstructors(Array.from(instructorsById.values()));
-  }, [studiosById, instructorsById]);
+    if (workshops && workshops.length > 0) {
+      setUpcomingWorkshopCounts();
+    }
+  }, [studiosById, instructorsById, workshops]);
 
   const fetchData = async () => {
     if (!user) return;
@@ -156,7 +172,7 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
       setInstructorsById(newInstructorsById);
     } catch (err: any) {
-      console.error('Error creating instructor:', err);
+      console.error('Error creating instructors:', err);
       setError(err.message || 'Failed to create instructor');
     } finally {
       setIsLoading(false);
@@ -186,6 +202,21 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
     return instructor;
   };
 
+  const setUpcomingWorkshopCounts = () => {
+    if (isWorkshopsLoading || !workshops) return;
+    const workshopCountByStudio = countBy(
+      workshops,
+      (workshop: Workshop) => workshop.studioId
+    );
+    const workshopCountByInstructor = countBy(
+      workshops,
+      (workshop: Workshop) => workshop.instructorId
+    );
+
+    setWorkshopCountByInstructor(workshopCountByInstructor);
+    setWorkshopCountByStudio(workshopCountByStudio);
+  };
+
   const refreshData = async () => {
     await fetchData();
   };
@@ -200,6 +231,8 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
     studios,
     isLoading,
     error,
+    workshopCountByInstructor,
+    workshopCountByStudio,
     createInstructor,
     createStudio,
     createSampleStudios,

@@ -1,14 +1,19 @@
 import crypto from 'crypto';
 import { faker } from '@faker-js/faker';
 import stripe from '../clients/stripe';
-import { Workshop, WorkshopParams, sampleWorkshopName } from '../sharedTypes';
+import {
+  Workshop,
+  WorkshopCreateParams,
+  sampleWorkshopName,
+} from '../sharedTypes';
 import { getInstructor, listInstructors } from './instructors';
 import { getStudio, listStudios } from './studios';
 import { loadUserOrThrow } from './users';
 import { dbService } from './db';
 
-async function createWorkshop(data: WorkshopParams, userId: string) {
-  const { stripeAccount } = await loadUserOrThrow(userId);
+async function createWorkshop(data: WorkshopCreateParams, userId: string) {
+  const { stripeAccount } = loadUserOrThrow(userId);
+  const studio = await getStudio(data.studioId);
 
   let paymentLink;
   // Training TODO: Create a payment link that will be used in the workshop object.
@@ -59,12 +64,10 @@ export async function createSampleWorkshops(
       // Pick a random instructor
       const instructor = faker.helpers.arrayElement(instructors);
 
-      const workshopParams: WorkshopParams = {
+      const workshopParams: WorkshopCreateParams = {
         name: sampleWorkshopName(),
-        start: currentStartTime.toISOString(),
-        end: new Date(
-          currentStartTime.getTime() + 60 * 60 * 1000
-        ).toISOString(), // 1 hour later
+        start: currentStartTime,
+        end: new Date(currentStartTime.getTime() + 60 * 60 * 1000), // 1 hour later
         instructorId: instructor.id,
         studioId: studio.id,
         capacity: studio.maxCapacity,
@@ -92,16 +95,17 @@ export async function createSampleWorkshops(
   return workshops;
 }
 
-async function getWorkshop(workshopId: string) {
-  const workshop = dbService.loadData('workshops', workshopId);
-  if (!workshop) throw new Error('Workshop not found');
+function getWorkshop(workshopId: string) {
+  const workshop = dbService.loadData('workshops', workshopId.trim());
+  if (!workshop) throw new Error(`Workshop ${workshopId} not found`);
   return workshop;
 }
 
 async function listWorkshops(userId: string) {
   const workshops = dbService.searchData(
     'workshops',
-    (item) => item.userId === userId
+    (item) =>
+      item.userId === userId && new Date(item.end) >= new Date(Date.now())
   );
   if (!workshops) throw new Error('Workshops not found');
 

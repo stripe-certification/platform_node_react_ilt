@@ -5,31 +5,23 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button, LoaderPage } from '@/components/ui';
 import { Field } from './ui/Field';
-import fetchClient from '../utils/fetchClient';
-import {
-  checkForConflicts,
-  computeStartEnd,
-  formatCurrency,
-  getDurationOptions,
-  timeOptions,
-} from '@/helpers';
-import { WorkshopParams, WorkshopParamsSchema, Workshop } from '@/sharedTypes';
+
+import { formatCurrency, getDurationOptions, timeOptions } from '@/helpers';
+import { WorkshopForm as FormParams, WorkshopFormSchema } from '@/sharedTypes';
 import { useTeamData } from '@/contexts/TeamData';
+import { useWorkshopData } from '@/contexts/WorkshopData';
 
 export default function WorkshopForm({
   setFormOpen,
-  fetchWorkshops,
-  workshops,
 }: {
   setFormOpen: Dispatch<SetStateAction<boolean>>;
-  fetchWorkshops: () => void;
-  workshops: Workshop[];
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { instructors, studios, studioById } = useTeamData();
-  const { control, handleSubmit, formState, watch } = useForm<WorkshopParams>({
-    resolver: zodResolver(WorkshopParamsSchema),
+  const { instructors, studios } = useTeamData();
+  const { createWorkshop, error: workshopError } = useWorkshopData();
+  const { control, handleSubmit, formState, watch } = useForm<FormParams>({
+    resolver: zodResolver(WorkshopFormSchema),
     defaultValues: {
       name: '',
       instructorId: '',
@@ -42,33 +34,17 @@ export default function WorkshopForm({
     },
   });
   const startTime = watch('startTime');
-  const studioId = watch('studioId');
   const durationOptions = getDurationOptions(startTime);
 
-  const onSubmit = async (values: WorkshopParams) => {
-    const conflictError = checkForConflicts(workshops, values);
-
-    if (conflictError) {
-      setError(conflictError);
-      return;
-    }
-
-    const { start, end } = computeStartEnd(values);
-
-    const { date, startTime, duration, ...rest } = values;
-    const transformedValues = {
-      ...rest,
-      capacity: studioById(studioId).maxCapacity,
-      start,
-      end,
-    };
-
+  const onSubmit = async (values: FormParams) => {
     setLoading(true);
     try {
-      await fetchClient.post('/workshops', transformedValues);
-
-      fetchWorkshops();
-      setFormOpen(false);
+      await createWorkshop(values);
+      if (workshopError) {
+        setError(workshopError);
+      } else {
+        setFormOpen(false);
+      }
     } catch (error: any) {
       console.error(error);
       setError(error.message || 'Failed to create workshop. Please try again.');
@@ -78,13 +54,13 @@ export default function WorkshopForm({
   };
 
   if (loading) return <LoaderPage />;
-
+  const errorToShow = error || workshopError;
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {error && (
+        {errorToShow && (
           <div className="mb-3 flex justify-center rounded-md bg-red-100 p-2 text-red-500">
-            {error}
+            {errorToShow}
           </div>
         )}
         <Field

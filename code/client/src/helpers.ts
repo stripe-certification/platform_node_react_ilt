@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Workshop, WorkshopParamsSchema } from '@/sharedTypes';
+import { Workshop, WorkshopFormSchema } from '@/sharedTypes';
 
 /**
  * Factory function to create a Zod schema, inferred TypeScript type, and type guard.
@@ -28,22 +28,16 @@ export function uniqBy<T>(elts: T[], accessor: (elt: T) => string) {
   return Object.values(eltsObj);
 }
 
-export function computeStartEnd({
-  date,
-  startTime,
-  duration,
-}: {
-  date: string;
-  startTime: string;
-  duration: number;
-}) {
-  const [hour, minute] = startTime.split(':').map(Number);
-  const paddedTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-
-  const start = new Date(`${date}T${paddedTime}`);
-  const end = new Date(start.getTime() + duration * 60000);
-
-  return { start, end };
+export function countBy<T>(
+  elts: T[],
+  accessor: (elt: T) => string
+): Map<string, number> {
+  return elts.reduce((counts: Map<string, number>, elt: T) => {
+    let countingId = accessor(elt);
+    let count = counts.get(countingId) || 0;
+    counts.set(countingId, count + 1);
+    return counts;
+  }, new Map());
 }
 
 export function formatCurrency(amount: number): string {
@@ -53,31 +47,6 @@ export function formatCurrency(amount: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
-}
-
-export function checkForConflicts(
-  workshops: Workshop[],
-  newEvent: z.infer<typeof WorkshopParamsSchema>
-) {
-  const { start, end } = computeStartEnd(newEvent);
-
-  if (start < new Date()) {
-    return 'Cannot schedule workshops in the past.';
-  }
-
-  const hasConflict = workshops.some((workshop) => {
-    const existingStart = new Date(workshop.start);
-    const existingEnd = new Date(workshop.end);
-
-    const sameStudio = workshop.studioId === newEvent.studioId;
-    const overlaps = start < existingEnd && end > existingStart;
-
-    return sameStudio && overlaps;
-  });
-
-  return hasConflict
-    ? 'This time slot conflicts with an existing workshop.'
-    : null;
 }
 
 /**

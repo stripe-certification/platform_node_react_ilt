@@ -9,6 +9,7 @@ import './globals.css';
 import '@/app/globals.css';
 import { EmbeddedComponentContext } from '../contexts/EmbeddedComponentContext';
 import { TeamDataProvider } from '@/contexts/TeamData';
+import { WorkshopDataProvider } from '@/contexts/WorkshopData';
 const fontSans = FontSans({
   subsets: ['latin'],
   variable: '--font-sans',
@@ -28,9 +29,11 @@ export default function RootLayout({
       <HtmlPage>
         <Suspense>
           <AuthRedirect>
-            <TeamDataProvider>
-              <EmbeddedComponentContext>{children}</EmbeddedComponentContext>
-            </TeamDataProvider>
+            <WorkshopDataProvider>
+              <TeamDataProvider>
+                <EmbeddedComponentContext>{children}</EmbeddedComponentContext>
+              </TeamDataProvider>
+            </WorkshopDataProvider>
           </AuthRedirect>
         </Suspense>
       </HtmlPage>
