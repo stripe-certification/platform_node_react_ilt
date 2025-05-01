@@ -4,6 +4,7 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 import express, { json } from 'express';
 import session from 'express-session';
+import 'express-async-errors'; //apply async error patch, so we can use throw in async functions instead of next()
 import { resolve } from 'path';
 import { existsSync } from 'fs';
 import cors from 'cors';
@@ -18,6 +19,7 @@ import {
   instructorsRouter,
 } from './routes/index.js';
 import { dbService } from './services/db.js';
+import { PoseError, errorHandler } from './services/errors.js';
 
 async function startServer() {
   try {
@@ -28,7 +30,7 @@ async function startServer() {
     const store = dbService.getSessionStore(session);
 
     const sessionSecret = process.env.SESSION_SECRET;
-    if (!sessionSecret) throw Error('SESSION_SECRET not set');
+    if (!sessionSecret) throw new PoseError('SESSION_SECRET not set');
 
     app.use(
       cors({
@@ -53,7 +55,7 @@ async function startServer() {
       })
     );
 
-    if (!process.env.STATIC_DIR) throw Error('STATIC_DIR not set');
+    if (!process.env.STATIC_DIR) throw new PoseError('STATIC_DIR not set');
     app.use(express.static(process.env.STATIC_DIR));
 
     app.use(webhookRouter);
@@ -68,7 +70,7 @@ async function startServer() {
     app.get('/', (_, res) => {
       try {
         const path = resolve(`${process.env.STATIC_DIR}/index.html`);
-        if (!existsSync(path)) throw Error();
+        if (!existsSync(path)) throw new PoseError(`index.html not found`);
         res.sendFile(path);
       } catch (error: any) {
         console.log(`Error loading static files: ${error.name}`);
@@ -76,7 +78,7 @@ async function startServer() {
         res.sendFile(path);
       }
     });
-
+    app.use(errorHandler);
     app.listen(4242, 'localhost', () => {
       console.log('Server is listening on port 4242...');
     });

@@ -15,5 +15,19 @@ const defaultOptions = {
 };
 
 const fetchClient = axios.create(defaultOptions);
+//override Axios default error message to help surface server errors
+fetchClient.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response) {
+      const { data } = error.response;
+      error.message = `Server error: ${data.error.message}`;
+      console.log(`Server error: ${error.message}`);
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default fetchClient;

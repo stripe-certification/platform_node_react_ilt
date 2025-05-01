@@ -4,7 +4,6 @@ import { Banner } from '@/components/Banner';
 import { useRouter } from 'next/navigation';
 import Schedule from '@/components/Schedule';
 import BalanceWidget from '@/components/BalanceWidget';
-import RecentPaymentsWidget from '@/components/RecentPaymentsWidget';
 import MonthToDateWidget from '@/components/MonthToDateWidget';
 import CustomersWidget from '@/components/CustomersWidget';
 import { useUserContext } from '@/contexts/UserData';
@@ -36,7 +35,6 @@ export default function Dashboard() {
         </div>
         <div className="w-[30%] min-w-[300px] space-y-4">
           <BalanceWidget />
-          <RecentPaymentsWidget />
           <h2 className="pt-4 text-lg font-bold">Performance</h2>
           <MonthToDateWidget />
           <CustomersWidget />

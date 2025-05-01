@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { Session } from 'express-session';
 import { Low } from 'lowdb';
 import { DatabaseSchema } from './db';
+import { PoseUnauthorizedError } from './errors';
 
 /**
  * As a learner, you don't need to worry about this file.
@@ -30,8 +31,6 @@ export const SessionsService = {
 };
 
 export default SessionsService;
-
-
 
 export function isAuthenticated(
   req: SessionRequest,
@@ -82,7 +81,7 @@ export function clear(req: Request, res: Response) {
 
 export function getUserId(req: SessionRequest) {
   if (!req.session.user || !req.session.user.id) {
-    return null;
+    throw new PoseUnauthorizedError('User not found in session');
   }
   return req.session.user.id;
 }

@@ -1,6 +1,4 @@
 'use client';
-
-import { ConnectPayments } from '@stripe/react-connect-js';
 import Container from '@/components/Container';
 import MonthToDateWidget from '@/components/MonthToDateWidget';
 import CustomersWidget from '@/components/CustomersWidget';
@@ -19,8 +17,7 @@ export default function Payments() {
       </div>
       <Container>
         <h1 className="ml-2 text-xl font-bold">Recent payments</h1>
-
-        <ConnectPayments />
+        { /* Training TODO: Display the user's recent payments. */}
       </Container>
     </>
   );

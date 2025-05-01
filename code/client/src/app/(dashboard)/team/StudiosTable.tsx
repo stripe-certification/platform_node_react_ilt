@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { HousePlus, CopyPlus } from 'lucide-react';
-
+import { HousePlus } from 'lucide-react';
 import { Studio } from '@/sharedTypes';
 import { useTeamData } from '@/contexts/TeamData';
 import { Button, Modal } from '@/components/ui';
@@ -16,8 +15,7 @@ interface StudiosTableProps {
 
 export function StudiosTable({ studios }: StudiosTableProps) {
   const [formOpen, setFormOpen] = useState(false);
-  const { createSampleStudios, isLoading, workshopCountByStudio } =
-    useTeamData();
+  const { isLoading, workshopCountByStudio } = useTeamData();
   let studioList = <EmptyResult resourceName="studios" />;
   if (studios.length > 0) {
     const studioElts = studios.map((studio) => {
@@ -28,9 +26,9 @@ export function StudiosTable({ studios }: StudiosTableProps) {
         >
           <div className="flex flex-col items-center">
             <h3 className="text-lg font-medium">{studio.name}</h3>
-            <h3 className="text-lg font-medium">
-              Upcoming Workshops: {workshopCountByStudio.get(studio.id)}
-            </h3>
+            <p className="text-sm text-subdued">
+              Upcoming Workshops: {workshopCountByStudio.get(studio.id) || 0}
+            </p>
             <p className="text-sm text-subdued">
               Max Capacity: {studio.maxCapacity}
             </p>
@@ -54,16 +52,7 @@ export function StudiosTable({ studios }: StudiosTableProps) {
           disabled={isLoading}
         >
           <HousePlus className="h-5 w-5" />
-          Add studio
-        </Button>
-        <Button
-          className="ml-2"
-          variant="secondary"
-          disabled={isLoading}
-          onClick={createSampleStudios}
-        >
-          <CopyPlus className="h-5 w-5" />
-          Quick samples
+          Add studios
         </Button>
       </div>
       {studioList}

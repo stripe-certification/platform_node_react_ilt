@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { UserPlus, CopyPlus, Phone, Mail } from 'lucide-react';
-
+import { UserPlus, Phone, Mail } from 'lucide-react';
 import { Instructor } from '@/sharedTypes';
 import { useTeamData } from '@/contexts/TeamData';
 import { Button, Modal } from '@/components/ui';
@@ -16,8 +15,7 @@ interface InstructorsTableProps {
 
 export function InstructorsTable({ instructors }: InstructorsTableProps) {
   const [formOpen, setFormOpen] = useState(false);
-  const { createSampleInstructors, isLoading, workshopCountByInstructor } =
-    useTeamData();
+  const { isLoading, workshopCountByInstructor } = useTeamData();
 
   let instructorList = <EmptyResult resourceName="instructors" />;
   if (instructors.length > 0) {
@@ -29,9 +27,10 @@ export function InstructorsTable({ instructors }: InstructorsTableProps) {
         >
           <div className="flex flex-col items-center gap-4">
             <h3 className="text-lg font-medium">{instructor.name}</h3>
-            <h3 className="text-lg font-medium">
-              Upcoming Workshops: {workshopCountByInstructor.get(instructor.id)}
-            </h3>
+            <p className="text-sm text-subdued">
+              Upcoming Workshops:{' '}
+              {workshopCountByInstructor.get(instructor.id) || 0}
+            </p>
             {instructor.profilePhoto && (
               <img
                 src={instructor.profilePhoto}
@@ -64,16 +63,7 @@ export function InstructorsTable({ instructors }: InstructorsTableProps) {
           disabled={isLoading}
         >
           <UserPlus className="h-5 w-5" />
-          Add instructor
-        </Button>
-        <Button
-          variant="secondary"
-          disabled={isLoading}
-          className="ml-2"
-          onClick={createSampleInstructors}
-        >
-          <CopyPlus className="h-5 w-5" />
-          Quick samples
+          Add instructors
         </Button>
       </div>
       {instructorList}

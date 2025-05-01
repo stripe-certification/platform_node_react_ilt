@@ -1,19 +1,12 @@
 'use client';
-import {
-  ConnectCapitalFinancing,
-  ConnectCapitalFinancingApplication,
-  ConnectCapitalFinancingPromotion,
-} from '@stripe/react-connect-js';
 import Container from '@/components/Container';
 
 export default function Finances() {
   return (
-    <>
+    <Container>
       <h1 className="text-3xl font-bold">Finance</h1>
-      <Container>
-        <ConnectCapitalFinancing />
-        <ConnectCapitalFinancingPromotion />
-      </Container>
-    </>
+      {/* Training TODO: Offer the user a Capital loan, or display 
+            their existing loan details and repayment progress. */}
+    </Container>
   );
 }

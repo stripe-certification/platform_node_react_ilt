@@ -41,9 +41,9 @@ export const WorkshopDataProvider: React.FC<PropsWithChildren> = ({
     try {
       const workshops = await fetchClient.get('/workshops');
       setWorkshops(workshops.data.workshops);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching workshops:', error);
-      setError('Failed to fetch workshops. Please try again.');
+      setError(error.message || 'Failed to fetch workshops. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -59,6 +59,7 @@ export const WorkshopDataProvider: React.FC<PropsWithChildren> = ({
     } catch (error: any) {
       console.error(error);
       setError(error.message || 'Failed to create workshop. Please try again.');
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +76,7 @@ export const WorkshopDataProvider: React.FC<PropsWithChildren> = ({
     } catch (err: any) {
       console.error('Error creating instructor:', err);
       setError(err.message || 'Failed to seed workshops. Please try again.');
-      console.error(err);
+      throw err;
     } finally {
       setIsLoading(false);
     }

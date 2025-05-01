@@ -11,6 +11,7 @@ import {
   CheckoutSession,
 } from '../sharedTypes';
 import { WorkshopService } from './workshops';
+import { PoseError, PoseBadRequestError } from './errors';
 
 export interface RequestWithUserId extends Request {
   userId?: string;
@@ -32,7 +33,7 @@ export async function createUser(userData: UserParams): Promise<User> {
 
   const existing = findUserByEmail(email);
   if (existing) {
-    throw new Error(`User with email ${email} already exists`);
+    throw new PoseBadRequestError(`User with email ${email} already exists`);
   }
   const id = `usr_${crypto.randomUUID()}`;
 
@@ -78,7 +79,7 @@ export function findUserByEmail(email: string): User | null {
   const results = dbService.searchData('users', (user) => user.email === email);
 
   if (results.length > 1)
-    throw Error(
+    throw new PoseError(
       'Multiple users found with this email, please adjust your database'
     );
   if (results.length === 1) return results[0];
@@ -99,9 +100,11 @@ export async function incrementEventAttendees(obj: CheckoutSession) {
     'Incrementing event attendees for workshop',
     obj.metadata.workshopId
   );
-  const workshop = await WorkshopService.getWorkshop(obj.metadata.workshopId);
-  if (!isWorkshop(workshop))
-    return console.error('Workshop not found', obj.metadata.workshopId);
+  const workshop = WorkshopService.getWorkshop(obj.metadata.workshopId);
+  if (!isWorkshop(workshop)) {
+    console.error('Workshop not found', obj.metadata.workshopId);
+    throw new PoseError(`Workshop ${obj.metadata.workshopId} not found`);
+  }
 
   if (workshop.attendees < workshop.capacity) {
     await WorkshopService.updateWorkshop(workshop.id, {

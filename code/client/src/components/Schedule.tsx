@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Studio, Workshop } from '@/sharedTypes';
 import { calendarCss } from '@/constants';
 import {
@@ -15,8 +15,8 @@ import {
   CalendarPlus as PlusIcon,
   ArrowUpFromLine as QuickSetupIcon,
 } from 'lucide-react';
-import WorkshopDayEvent from '@/components/WorkshopDayEvent';
-import WorkshopAgendaEvent from '@/components/WorkshopAgendaEvent';
+import WorkshopDayEvent from './WorkshopDayEvent';
+import WorkshopAgendaEvent from './WorkshopAgendaEvent';
 import { LoaderPage, Modal } from './ui';
 import WorkshopForm from './WorkshopForm';
 import { useUserContext } from '@/contexts/UserData';
@@ -33,10 +33,10 @@ const Schedule = () => {
   } = useWorkshopData();
   const [formOpen, setFormOpen] = useState(false);
   const { isChargesEnabled } = useUserContext();
-  const { studios, isLoading: isTeamLoading } = useTeamData();
+  const { studios, isLoading: teamLoading } = useTeamData();
   const [error, setError] = useState<any>(null);
 
-  if (workshopsLoading || isTeamLoading) {
+  if ((workshopsLoading || teamLoading) && !formOpen) {
     return <LoaderPage />;
   }
 
@@ -49,6 +49,15 @@ const Schedule = () => {
         return <WorkshopAgendaEvent {...event} />;
       },
     },
+  };
+
+  const handleCreateSampleWorkshops = async () => {
+    try {
+      await createSampleWorkshops();
+    } catch (error: any) {
+      setError(error.message || 'Failed to create sample workshops');
+      console.error('Error creating sample workshops:', error);
+    }
   };
 
   return (
@@ -66,14 +75,7 @@ const Schedule = () => {
       <div className="mb-3 flex gap-3">
         <h1 className="flex-1 text-3xl font-bold">Workshops</h1>
         <Button
-          onClick={async () => {
-            try {
-              createSampleWorkshops();
-            } catch (err) {
-              setError('Failed to seed workshops. Please try again.');
-              console.error(err);
-            }
-          }}
+          onClick={handleCreateSampleWorkshops}
           className="gap-2 bg-white text-base font-medium text-primary shadow transition hover:shadow-md"
           disabled={workshopsLoading || !isChargesEnabled}
         >
@@ -120,7 +122,7 @@ const Schedule = () => {
         isOpen={formOpen}
         onClose={() => setFormOpen(false)}
       >
-        <WorkshopForm setFormOpen={setFormOpen} />
+        <WorkshopForm setOpen={setFormOpen} />
       </Modal>
     </>
   );

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home as HomeIcon,
-  Calendar as CalendarIcon,
   Wallet as WalletIcon,
   Coins as CoinsIcon,
   Landmark as LandmarkIcon,
@@ -63,7 +62,7 @@ const Nav = () => {
   const { user } = useUserContext();
   if (!user) throw new Error('User not found');
   const accountID = user.stripeAccount;
-  const BASE_URL = `${process.env.BASE_URL}:${process.env.PORT}`;
+
   const country = 'US';
 
   const displayIssuing = true;

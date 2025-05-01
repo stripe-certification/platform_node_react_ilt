@@ -1,8 +1,8 @@
 import { Router, Response } from 'express';
-
-import { StudioParamsSchema, StudioCollection } from '../sharedTypes';
+import { StudioParamsSchema } from '../sharedTypes';
 import StudioService from '../services/studios';
 import SessionsService, { SessionRequest } from '../services/sessions';
+import { PoseBadRequestError } from '../services/errors';
 
 const router = Router();
 
@@ -11,14 +11,8 @@ router.get(
   SessionsService.isAuthenticated,
   async (request: SessionRequest, response: Response) => {
     const userId = SessionsService.getUserId(request) as string;
-
-    try {
-      const studios = await StudioService.listStudios(userId);
-      return response.status(200).json({ studios });
-    } catch (error: any) {
-      console.error('Error listing studios:', error);
-      return response.status(500).json({ error });
-    }
+    const studios = await StudioService.listStudios(userId);
+    return response.status(200).json({ studios });
   }
 );
 
@@ -26,13 +20,8 @@ router.get(
   '/studios/:id',
   SessionsService.isAuthenticated,
   async (request: SessionRequest, response: Response) => {
-    try {
-      const studio = await StudioService.getStudio(request.params.id);
-      return response.status(200).json({ studio });
-    } catch (error: any) {
-      console.error('Error getting studio:', error);
-      return response.status(500).json({ error });
-    }
+    const studio = await StudioService.getStudio(request.params.id);
+    return response.status(200).json({ studio });
   }
 );
 
@@ -45,18 +34,13 @@ router.post(
 
     // Validate the request body
     const parseResult = StudioParamsSchema.safeParse(request.body);
-    if (!parseResult.success)
-      return response.status(400).json({
-        error: { message: parseResult.error.format() },
-      });
-
-    try {
-      const studio = await StudioService.createStudio(parseResult.data, userId);
-      return response.status(201).json({ studio });
-    } catch (error: any) {
-      console.error('Error creating studio:', error);
-      return response.status(500).json({ error: 'Internal server error' });
+    if (!parseResult.success) {
+      throw new PoseBadRequestError(
+        `Error creating studio: ${parseResult.error.format()}`
+      );
     }
+    const studio = await StudioService.createStudio(parseResult.data, userId);
+    return response.status(201).json({ studio });
   }
 );
 
@@ -67,18 +51,13 @@ router.post(
   async (request: SessionRequest, response: Response) => {
     const userId = SessionsService.getUserId(request) as string;
 
-    try {
-      await StudioService.createSampleStudio(userId);
-      await StudioService.createSampleStudio(userId);
-      await StudioService.createSampleStudio(userId);
+    await StudioService.createSampleStudio(userId);
+    await StudioService.createSampleStudio(userId);
+    await StudioService.createSampleStudio(userId);
 
-      // Return the list of all studios
-      const studios = await StudioService.listStudios(userId);
-      return response.status(200).json({ studios });
-    } catch (error: any) {
-      console.error('Error in quickstart:', error);
-      return response.status(500).json({ error });
-    }
+    // Return the list of all studios
+    const studios = await StudioService.listStudios(userId);
+    return response.status(200).json({ studios });
   }
 );
 

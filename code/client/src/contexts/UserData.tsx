@@ -43,9 +43,7 @@ export function UserProvider({ children }: PropsWithChildren<unknown>) {
   }
 
   function getErrorMessage(err: any): string {
-    return (
-      err.response?.data?.error || err.message || 'An unknown error occurred'
-    );
+    return err.message || 'An unknown error occurred';
   }
 
   useEffect(() => {

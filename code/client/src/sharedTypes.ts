@@ -116,7 +116,7 @@ export type Workshop = z.infer<typeof WorkshopSchema>;
 // #region INSTRUCTOR TYPES
 
 export const InstructorParamsSchema = z.object({
-  name: z.string(),
+  name: z.string().min(1),
   profilePhoto: z.string().url().optional().or(z.literal('')), // Allow empty strings for optional profilePhoto
 });
 export const isInstructorParams = createTypeGuard(InstructorParamsSchema);
@@ -134,7 +134,7 @@ export type Instructor = z.infer<typeof InstructorSchema>;
 // #region STUDIO TYPES
 
 export const StudioParamsSchema = z.object({
-  name: z.string(),
+  name: z.string().min(1),
   maxCapacity: z.coerce.number().min(1),
 });
 export const isStudioParams = createTypeGuard(StudioParamsSchema);

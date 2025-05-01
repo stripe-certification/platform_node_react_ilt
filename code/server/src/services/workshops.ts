@@ -10,6 +10,7 @@ import { getInstructor, listInstructors } from './instructors';
 import { getStudio, listStudios } from './studios';
 import { loadUserOrThrow } from './users';
 import { dbService } from './db';
+import { PoseError, PoseNotFoundError } from './errors';
 
 async function createWorkshop(data: WorkshopCreateParams, userId: string) {
   const { stripeAccount } = loadUserOrThrow(userId);
@@ -17,7 +18,6 @@ async function createWorkshop(data: WorkshopCreateParams, userId: string) {
 
   let paymentLink;
   // Training TODO: Create a payment link that will be used in the workshop object.
-  if (!paymentLink) throw new Error('Failed to create payment link');
 
   const workshop: Workshop = {
     ...data,
@@ -50,11 +50,13 @@ export async function createSampleWorkshops(
   const instructors = await listInstructors(userId);
   const studios = await listStudios(userId);
 
-  if (instructors.length === 0) throw new Error('No instructors available');
-  if (studios.length === 0) throw new Error('No studios available');
+  if (instructors.length === 0) throw new PoseError('No instructors available');
+  if (studios.length === 0) throw new PoseError('No studios available');
 
   const today = new Date();
-  today.setHours(9, 0, 0, 0); // Start at 9am today
+  const currentHour = today.getHours();
+  const startingHour = currentHour < 9 || currentHour > 4 ? 9 : currentHour + 1; // Start at 9am or later today
+  today.setHours(startingHour, 0, 0, 0);
 
   const workshops: Workshop[] = [];
   for (const studio of studios) {
@@ -73,9 +75,16 @@ export async function createSampleWorkshops(
         capacity: studio.maxCapacity,
         amount: sampleAmount(),
       };
-
-      const workshop = await createWorkshop(workshopParams, userId);
-      workshops.push(workshop);
+      try {
+        const workshop = await createWorkshop(workshopParams, userId);
+        workshops.push(workshop);
+      } catch (error) {
+        console.error(
+          `Failed to create workshop for studio ${studio.name} and instructor ${instructor.name}:`,
+          error
+        );
+        throw error;
+      }
 
       // Calculate the next start time
       const nextStartOffset =
@@ -97,7 +106,8 @@ export async function createSampleWorkshops(
 
 function getWorkshop(workshopId: string) {
   const workshop = dbService.loadData('workshops', workshopId.trim());
-  if (!workshop) throw new Error(`Workshop ${workshopId} not found`);
+  if (!workshop)
+    throw new PoseNotFoundError(`Workshop ${workshopId} not found`);
   return workshop;
 }
 
@@ -107,7 +117,7 @@ async function listWorkshops(userId: string) {
     (item) =>
       item.userId === userId && new Date(item.end) >= new Date(Date.now())
   );
-  if (!workshops) throw new Error('Workshops not found');
+  if (!workshops) throw new PoseNotFoundError('Workshops not found');
 
   return workshops;
 }

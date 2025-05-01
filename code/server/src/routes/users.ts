@@ -3,6 +3,11 @@ import { body } from 'express-validator';
 import { User } from '../sharedTypes';
 import UserService, { RequestWithUserId } from '../services/users';
 import SessionsService, { SessionRequest } from '../services/sessions';
+import {
+  PoseError,
+  PoseBadRequestError,
+  PoseUnauthorizedError,
+} from '../services/errors';
 const router = Router();
 
 router.post(
@@ -15,41 +20,24 @@ router.post(
   ) => {
     const email = request.body.email;
 
-    try {
-      const user: User | null = await UserService.findUserByEmail(email);
+    const user: User | null = UserService.findUserByEmail(email);
 
-      if (!user) {
-        return response.status(404).json({ error: 'User not found' });
-      }
-
-      request.userId = user.id;
-      next();
-    } catch (error: any) {
-      console.error('Error signing in user:', error);
-      return response.status(500).json({ error: error.message });
+    if (!user) {
+      throw new PoseUnauthorizedError(`Error logging in, user not found`);
     }
+    request.userId = user.id;
+    next();
   },
   SessionsService.create,
   async (request: Request, response: Response) => {
-    try {
-      const userId = SessionsService.getUserId(request);
-
-      const user = await UserService.loadUserOrThrow(userId as string);
-      response.send(user);
-    } catch (error: any) {
-      console.error('Error fetching user:', error);
-      return response.status(500).json({ error: error.message });
-    }
+    const userId = SessionsService.getUserId(request);
+    const user = UserService.loadUserOrThrow(userId as string);
+    response.send(user);
   }
 );
 
 router.post('/users/logout', async (request: Request, response: Response) => {
-  try {
-    SessionsService.clear(request, response);
-  } catch (error: any) {
-    console.error('Error logging out user:', error);
-    return response.status(500).json({ error: error.message });
-  }
+  SessionsService.clear(request, response);
 });
 
 router.post(
@@ -60,50 +48,36 @@ router.post(
       values: { email, name },
     }: { values: { email: string; name: string } } = request.body;
 
-    try {
-      if (!email || !name) {
-        return response.status(400).json({ error: 'Missing name or email' });
-      }
-
-      const params = { email, name };
-      const user = await UserService.createUser(params);
-      if (!user) {
-        return response.status(500).json({ error: 'User not created' });
-      }
-
-      request.userId = user.id;
-      next();
-    } catch (error: any) {
-      console.error('Error creating user:', error);
-      return response.status(500).json({ error: error.message });
+    if (!email) {
+      throw new PoseBadRequestError(`Error creating user, missing email`);
     }
+    if (!name) {
+      throw new PoseBadRequestError(`Error creating user, missing name`);
+    }
+
+    const params = { email, name };
+    const user = await UserService.createUser(params);
+    if (!user) {
+      throw new PoseError(`Error creating user, user not created ${params}`);
+    }
+    request.userId = user.id;
+    next();
   },
   SessionsService.create,
   async (request: SessionRequest, response: Response) => {
-    try {
-      if (!request.session.user) {
-        return response
-          .status(500)
-          .json({ error: { message: 'User missing from session' } });
-      }
-
-      const user = await UserService.loadUserOrThrow(request.userId as string);
-      response.send(user);
-    } catch (error: any) {
-      console.error('Error fetching user:', error);
-      return response.status(500).json({ error: error.message });
+    if (!request.session.user) {
+      throw new PoseUnauthorizedError('User missing from session');
     }
+
+    const user = UserService.loadUserOrThrow(request.userId as string);
+    response.send(user);
   }
 );
 
 router.get('/users', async (request: Request, response: Response) => {
   const userId = SessionsService.getUserId(request);
 
-  if (!userId) {
-    return response.send(null);
-  }
-
-  const user = await UserService.loadUserOrThrow(userId as string);
+  const user = UserService.loadUserOrThrow(userId as string);
   response.send(user);
 });
 

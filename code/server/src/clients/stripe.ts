@@ -3,6 +3,7 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 import Stripe from 'stripe';
 
+console.log('Stripe SDK loaded, API version:', process.env.STRIPE_API_VERSION);
 const apiVersion = (process.env.STRIPE_API_VERSION ||
   '2025-02-24.acacia;embedded_connect_beta=v2') as Stripe.LatestApiVersion;
 

@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { type StripeConnectInstance } from '@stripe/connect-js/pure';
-import { loadConnectAndInitialize } from '@stripe/connect-js/pure';
 import fetchClient from '../utils/fetchClient';
 import { useUserContext } from '@/contexts/UserData';
-import { ConnectComponentsProvider } from '@stripe/react-connect-js';
 import LoaderPage from '../components/ui/LoaderPage';
 
 export const EmbeddedComponentContext = ({
@@ -31,8 +29,8 @@ export const EmbeddedComponentContext = ({
   }
 
   return (
-    <ConnectComponentsProvider connectInstance={stripeConnectInstance}>
-      {children}
-    </ConnectComponentsProvider>
+    <>
+        {children}
+    </>
   );
 };

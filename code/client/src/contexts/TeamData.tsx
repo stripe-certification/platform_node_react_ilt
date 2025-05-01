@@ -103,11 +103,16 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
     setError(null);
 
     try {
-      const response = await fetchClient.post<Studio>('/studios', params);
-      setStudiosById(new Map(studiosById).set(response.data.id, response.data));
+      const response = await fetchClient.post<{ studio: Studio }>(
+        '/studios',
+        params
+      );
+      const studio = response.data.studio;
+      setStudiosById(new Map(studiosById).set(studio.id, studio));
     } catch (err: any) {
       console.error('Error creating studio:', err);
       setError(err.message || 'Failed to create studio');
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -130,6 +135,7 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
     } catch (err: any) {
       console.error('Error creating sample studios:', err);
       setError(err.message || 'Failed to create sample studios');
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -141,16 +147,18 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
     setError(null);
 
     try {
-      const response = await fetchClient.post<Instructor>(
+      const response = await fetchClient.post<{ instructor: Instructor }>(
         '/instructors',
         params
       );
+      const instructor = response.data.instructor;
       setInstructorsById(
-        new Map(instructorsById).set(response.data.id, response.data)
+        new Map(instructorsById).set(instructor.id, instructor)
       );
     } catch (err: any) {
       console.error('Error creating instructor:', err);
       setError(err.message || 'Failed to create instructor');
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -173,7 +181,8 @@ export const TeamDataProvider: React.FC<PropsWithChildren> = ({ children }) => {
       setInstructorsById(newInstructorsById);
     } catch (err: any) {
       console.error('Error creating instructors:', err);
-      setError(err.message || 'Failed to create instructor');
+      setError(err.message || 'Failed to create instructors');
+      throw err;
     } finally {
       setIsLoading(false);
     }

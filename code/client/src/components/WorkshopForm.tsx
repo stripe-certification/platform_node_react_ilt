@@ -1,9 +1,9 @@
 'use client';
 
-import React, { Dispatch, SetStateAction, useState } from 'react';
+import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Button, LoaderPage } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { Field } from './ui/Field';
 
 import { formatCurrency, getDurationOptions, timeOptions } from '@/helpers';
@@ -11,15 +11,14 @@ import { WorkshopForm as FormParams, WorkshopFormSchema } from '@/sharedTypes';
 import { useTeamData } from '@/contexts/TeamData';
 import { useWorkshopData } from '@/contexts/WorkshopData';
 
-export default function WorkshopForm({
-  setFormOpen,
-}: {
-  setFormOpen: Dispatch<SetStateAction<boolean>>;
-}) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface WorkshopFormProps {
+  setOpen: (open: boolean) => void;
+}
+
+export function WorkshopForm({ setOpen }: WorkshopFormProps) {
+  const [error, setError] = useState<any | null>(null);
   const { instructors, studios } = useTeamData();
-  const { createWorkshop, error: workshopError } = useWorkshopData();
+  const { createWorkshop } = useWorkshopData();
   const { control, handleSubmit, formState, watch } = useForm<FormParams>({
     resolver: zodResolver(WorkshopFormSchema),
     defaultValues: {
@@ -37,32 +36,23 @@ export default function WorkshopForm({
   const durationOptions = getDurationOptions(startTime);
 
   const onSubmit = async (values: FormParams) => {
-    setLoading(true);
     try {
       await createWorkshop(values);
-      if (workshopError) {
-        setError(workshopError);
-      } else {
-        setFormOpen(false);
-      }
+      setOpen(false);
     } catch (error: any) {
-      console.error(error);
       setError(error.message || 'Failed to create workshop. Please try again.');
-    } finally {
-      setLoading(false);
+      console.error(error);
     }
   };
 
-  if (loading) return <LoaderPage />;
-  const errorToShow = error || workshopError;
   return (
     <>
+      {error && (
+        <div className="mb-3 flex justify-center rounded-md bg-red-100 p-2 text-red-500">
+          {error}
+        </div>
+      )}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {errorToShow && (
-          <div className="mb-3 flex justify-center rounded-md bg-red-100 p-2 text-red-500">
-            {errorToShow}
-          </div>
-        )}
         <Field
           control={control}
           name="name"
@@ -121,7 +111,9 @@ export default function WorkshopForm({
         />
         <Button
           type="submit"
-          disabled={formState.isSubmitting}
+          disabled={
+            formState.isSubmitting || !formState.isDirty || !formState.isValid
+          }
           className="w-full"
         >
           {formState.isSubmitting ? 'Creating...' : 'Create Workshop'}
@@ -130,3 +122,4 @@ export default function WorkshopForm({
     </>
   );
 }
+export default WorkshopForm;
