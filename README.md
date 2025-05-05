@@ -93,7 +93,11 @@ cd billing_node_react_ilt
 
 <summary>My GitHub account doesn't have an SSH key</summary>
 
-You can quickly clone the repo by using the GitHub CLI.
+You can quickly clone the repo by using the GitHub CLI.  You can install it via:
+
+- Unix systems with `brew`: `brew install gh`
+- Windows systems: `winget install --id GitHub.cli`
+- Other: https://github.com/cli/cli#installation
 
 ```bash
 brew install gh
@@ -110,16 +114,17 @@ You can install the Stripe CLI with brew by running:
 
 ```bash
 brew install stripe/stripe-cli/stripe
-```
+``` 
+If you're on a Windows machine or don't have `brew`, check [here](https://docs.stripe.com/stripe-cli) for other installation commands.
 
-If you don't have `brew`, check [here](https://docs.stripe.com/stripe-cli) for other installation commands.
-
-We'll use Node v22.15.0 on this application. You can set it up with `nodenv` by running:
+We'll use Node v22.15.0 on this application.  You can set it up with [`nodenv`](https://github.com/nodenv/nodenv) by running:
 
 ```bash
 nodenv install 22.15.0
 nodenv local 22.15.0
 ```
+
+If you don't already have `nodenv` installed, then you can do so with their [easy installation](https://github.com/nodenv/nodenv-installer#nodenv-installer) package: `npx @nodenv/nodenv-installer`.
 
 ### 3. Install dependencies
 
