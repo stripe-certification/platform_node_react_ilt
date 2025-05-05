@@ -25,9 +25,7 @@ router.post(
           // Training TODO: Handle an `account.updated` event
           break;
         case 'checkout.session.completed':
-          if (isCheckoutSession(obj)) {
-            await UserService.incrementEventAttendees(obj);
-          }
+          // Training TODO: Handle an `checkout.session.completed` event
           break;
         default:
           console.log(`Unhandled event type: ${event.type}`);
