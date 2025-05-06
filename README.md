@@ -161,8 +161,8 @@ If you're unfamiliar with cloning repositories, we have instructions below depen
 <summary>My GitHub account has an SSH key</summary>
 
 ```bash
-git clone git@github.com:stripe-certification/billing_node_react_ilt.git
-cd billing_node_react_ilt
+git clone git@github.com:stripe-certification/platform_node_react_ilt.git
+cd platform_node_react_ilt
 ```
 
 </details>
@@ -180,8 +180,8 @@ You can quickly clone the repo by using the GitHub CLI.  You can install it via:
 ```bash
 brew install gh
 gh auth login
-gh repo clone stripe-certification/billing_node_react_ilt
-cd billing_node_react_ilt
+gh repo clone stripe-certification/platform_node_react_ilt
+cd platform_node_react_ilt
 ```
 
 </details>
