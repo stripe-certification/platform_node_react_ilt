@@ -44,21 +44,101 @@ You can find every place which needs updates by searching for `TODO` comments, b
 
 You'll need to create a new Connect account, configure the controller appropriately, and then use the embedded components for collecting KYC data.
 
-### Milestone 2: Collecting payments for workshops
+Complete the server code that creates a new pose user to also create a corresponding Stripe account:
 
-You'll be using PaymentLinks to charge class attendees prior to a workshop. You'll need to complete the code to create a workshop to include creating a PaymentLink that can be used by class attendees to pay.
+- The account should have transfer and card payment capabilities.
+- The Pose application will pay the Stripe fees and will assume liability for any losses the account can't pay. It will also be responsible for collecting KYC information.
+- The account does not need access to the Stripe dashboard
+- Store the Pose database id for this user in the metadata of the Stripe account.
+
+Once you've create a Stripe account associated with the user, complete the Dashboard page with in the Pose client to display the Connect embedded account components to the user.
+
+- The Pose client layout includes an `EmbeddedComponentContext` context the initialization required by the Connect components. Before you can use one of the connect components, you'll need to complete the context to provide a StripeConnectInstance to the components. Complete the `useEffect` in the context to fetch a client secret, make a server call to create an account-session and then initialize a StripeConnectInstance. You can use the following CSS styles to make the components appear integrated into the application:
+
+```
+ appearance: {
+          overlays: 'dialog',
+          variables: {
+            fontFamily: 'Sohne, inherit',
+
+            colorPrimary: '#312356',
+
+            buttonPrimaryColorBackground: '#312356',
+            buttonPrimaryColorText: '#f4f4f5',
+
+            badgeSuccessColorBackground: '#D7F4CC',
+            badgeSuccessColorText: '#264F47',
+            badgeSuccessColorBorder: '#BDDAB3',
+
+            badgeWarningColorBackground: '#FFEACC',
+            badgeWarningColorText: '#C95B4D',
+            badgeWarningColorBorder: '#FFD28C',
+
+            badgeDangerColorBackground: '#FFEACC',
+            badgeDangerColorText: '#C95B4D',
+            badgeDangerColorBorder: '#FFD28C',
+          },
+        },
+```
+
+- Within the server's account service, complete the function `createAccountSession`. You should enable the following components: `account_management`, `account_onboarding`, `notification_banner`, `payments`, `payouts`, `capital_financing`, `capital_financing_application`, `capital_financing_promotion`. `disable_stripe_user_authentication` and `external_account_collection` should both be set to true for components that have that feature.
+- Use the notification banner to display any messages from Stripe to the user.
+- Display either the account management or onboarding component based on whether the user has completed submitting their KYC details.
+- Display the tax setting and registration components
+
+Lastly you'll need to listen for `account.updated` webhook events so you know when a user has completed their Stripe onboarding.
+
+- You'll start by adding code that constructs the event from the webhook payload to the handler in the webhook route
+- To handle account updates, you can use the helper method `isPoseAccount` to confirm the event object is a Stripe account of a Pose user.
+- You can then call the `handleAccountUpdate` function within the User service to update the status of the account within the Pose database.
+
+### Milestone 2: Collecting payments for classes
+
+The next step is to populate the workshop schedule. For each workshop you will create a PaymentLink for the instructor to share with their clients.
+
+To get started creating workshops you'll need to create instructors and studios. You can create them within the Team page of the app.
+
+Once you have some studios and instructors, complete the code within the server's workshop service to add a PaymentLink to the workshop.
+
+You'll start by creating a Price object. You will use the WorkshopCreateParams that are passed to the function to populate price attributes:
+
+- the price's nickname should be set to the param `name`
+- use the `amount` param to caluculate the `unit_amount`
+- The price's `product_data` underlying the price should have a `name` field of the format `<instructor.name> - <name param>`
+- the price should be created within the connected account
+
+Once you have a price, create a PaymentLink:
+
+- The payment link should be created within the connected account.
+- The payment link should have the following metadata fields populated: `instructorId`, `studioId`, `instructorName`, `studioName` and `workshopId`.
+- This metadata should be set both on the payment link as well as on the associated PaymentIntent.
+- A customer should always be created when the payment link is used
+- The payment link should use the price id and be limited to purchasing one reservation per checkout instance
+- The studio capacity should determine the number of times the payment link can be used.
+
+You can test your payment links by viewing the schedule of workshops and clicky the `Copy` icon next to one of the events. The payment link url will be copied to your clipboard, and you can paste it into a new browser window to complete the reserveration.
 
 ### Milestone 3: Consuming webhook events to register payment
 
-To keep track of paid workshop attendees you'll need to listen for the `checkout.session.completed` event and update the attendee count.
+In order to not oversell a workshop you'll need to keep track of paid reservations. For this milestone you'll complete the webhook handler in the server code's `webhooks` route to handle `checkout.session.completed` events.
+
+- You can use the helper method `isCheckoutSession` to confirm the payload is the object you are expecting in the event payload.
+- You can then call the `incrementEventAttendees` function within the User service to update the count of attendees.
 
 ### Milestone 4: Integrating the Payments and Payouts components
 
-Use the Connect embedded components to complete the user's dashboard and show them the payments they've received as well as their payouts.
+Now that the user has received some payments for workshop reservations, it's time to flesh out their Dashboard to show them their payments and when they will receive their money.
+
+- You will add the Connect Payments embedded component to the Payments page within the user's Dashboard.
+- You will add the Connect Payouts embedded component to the Payouts page within the user's Dashboard.
 
 ### Milestone 5: Offering working capital via Capital for Platforms
 
-Use the Connect embedded components to offer your users loans. Use the `Finances` page to show the offer and subsequently display information about disbursment and repayment. See the [Setting up a Capital Loan for an Account](#setting-up-a-capital-loan-for-an-account) section of this README for tips on how to create a within your Stripe dashboard to test in Pose.
+The last thing we'll do is use the `Finances` page within the user's Dashboard to show Captial loans offers and relevant information about disbursment and repayment.
+
+- Update the Finances page to show the Connect embedded components for Capital Financing and Promotion
+
+See the [Setting up a Capital Loan for an Account](#setting-up-a-capital-loan-for-an-account) section of this README for tips on how to create a within your Stripe dashboard to test in Pose.
 
 ### Bonus: Ideas for what to build next
 

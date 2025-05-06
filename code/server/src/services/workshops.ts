@@ -17,6 +17,9 @@ async function createWorkshop(data: WorkshopCreateParams, userId: string) {
   const studio = await getStudio(data.studioId);
 
   let paymentLink;
+  //Use this id for the workshop object
+  const id = `wkshp_${crypto.randomUUID()}`;
+
   // Training TODO: Create a payment link that will be used in the workshop object.
 
   const workshop: Workshop = {
